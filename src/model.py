@@ -60,3 +60,11 @@ def evaluate_model(model, test_ds):
 
 def save_model(model, path):
     model.save(path)
+
+def save_model(model, path):
+    model.save(path)
+
+
+def load_model(path):
+    """Loads a previously trained/saved model from disk."""
+    return tf.keras.models.load_model(path)
