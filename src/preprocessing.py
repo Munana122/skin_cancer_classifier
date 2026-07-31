@@ -11,6 +11,7 @@ CLASS_NAMES = [
     'seborrheic_keratosis', 'squamous_cell_carcinoma', 'vascular_lesion'
 ]
 
+
 def load_datasets(train_dir, test_dir):
     """Loads and preprocesses training, validation, and testing datasets."""
     train_ds = tf.keras.utils.image_dataset_from_directory(
@@ -22,7 +23,6 @@ def load_datasets(train_dir, test_dir):
         batch_size=BATCH_SIZE,
         label_mode='categorical'
     )
-
     val_ds = tf.keras.utils.image_dataset_from_directory(
         train_dir,
         validation_split=0.2,
@@ -32,18 +32,27 @@ def load_datasets(train_dir, test_dir):
         batch_size=BATCH_SIZE,
         label_mode='categorical'
     )
-
     test_ds = tf.keras.utils.image_dataset_from_directory(
         test_dir,
         image_size=IMG_SIZE,
         batch_size=BATCH_SIZE,
         label_mode='categorical'
     )
-
     AUTOTUNE = tf.data.AUTOTUNE
     train_ds = train_ds.cache().shuffle(1000).prefetch(buffer_size=AUTOTUNE)
     val_ds = val_ds.cache().prefetch(buffer_size=AUTOTUNE)
     test_ds = test_ds.cache().prefetch(buffer_size=AUTOTUNE)
-
     # Returns 3 items matching your notebook cell signature
     return train_ds, val_ds, test_ds
+
+
+def preprocess_single_image(image_path):
+    """
+    Loads and prepares ONE image for prediction. Accepts either a file path
+    (string) or a file-like object (e.g. FastAPI's UploadFile.file) —
+    tf.keras.utils.load_img supports both.
+    """
+    img = tf.keras.utils.load_img(image_path, target_size=IMG_SIZE)
+    img_array = tf.keras.utils.img_to_array(img)
+    img_array = tf.expand_dims(img_array, 0)  # model expects a batch, so add batch dim of 1
+    return img_array
