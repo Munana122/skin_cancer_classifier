@@ -11,7 +11,8 @@ import glob
 import requests
 import streamlit as st
 
-API_URL = os.getenv("API_URL", "http://localhost:8000")
+# Updated to default to your live Render backend URL
+API_URL = os.getenv("API_URL", "https://skin-cancer-classifier-z0bg.onrender.com")
 TRAIN_DIR = os.getenv("TRAIN_DIR", "data/train")
 
 st.set_page_config(page_title="Skin Cancer Classifier MLOps Console", page_icon="🩺", layout="wide")
