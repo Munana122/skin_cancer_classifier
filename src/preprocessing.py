@@ -1,4 +1,5 @@
 import os
+import io
 import tensorflow as tf
 
 IMG_SIZE = (224, 224)
@@ -48,10 +49,14 @@ def load_datasets(train_dir, test_dir):
 
 def preprocess_single_image(image_path):
     """
-    Loads and prepares ONE image for prediction. Accepts either a file path
-    (string) or a file-like object (e.g. FastAPI's UploadFile.file) —
-    tf.keras.utils.load_img supports both.
+    Loads and prepares ONE image for prediction. Accepts a file path
+    (string), a file-like object (e.g. FastAPI's UploadFile.file), or
+    raw bytes. Newer Keras versions only accept a path or io.BytesIO
+    directly, so anything else gets wrapped in io.BytesIO first.
     """
+    if hasattr(image_path, "read"):
+        image_path = io.BytesIO(image_path.read())
+
     img = tf.keras.utils.load_img(image_path, target_size=IMG_SIZE)
     img_array = tf.keras.utils.img_to_array(img)
     img_array = tf.expand_dims(img_array, 0)  # model expects a batch, so add batch dim of 1
