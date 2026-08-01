@@ -1,12 +1,2 @@
-tensorflow==2.20.0
-numpy
-pillow
-matplotlib
-seaborn
-scikit-learn
-fastapi
-uvicorn[standard]
-python-multipart
 streamlit
 requests
-locust
