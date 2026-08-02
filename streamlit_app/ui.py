@@ -11,6 +11,19 @@ import streamlit as st
 
 API_URL = os.getenv("API_URL", "https://skin-cancer-classifier-z0bg.onrender.com")
 
+
+def safe_error_detail(res):
+    """
+    Safely extracts an error message from a failed response, whether it's
+    JSON (normal API error) or not (e.g. an HTML timeout/error page from
+    Render's proxy, which would otherwise crash res.json()).
+    """
+    try:
+        return res.json().get("detail", res.text)
+    except Exception:
+        return f"Server returned a non-JSON response (status {res.status_code}). It may have timed out — try again in a moment."
+
+
 st.set_page_config(page_title="Skin Cancer Classifier MLOps Console", page_icon="🩺", layout="wide")
 st.title("🩺 Skin Cancer Detection & MLOps Console")
 
@@ -36,19 +49,21 @@ with tab1:
 
     if file and st.button("Classify Image", type="primary"):
         with st.spinner("Running prediction..."):
-            res = requests.post(f"{API_URL}/predict", files={"file": (file.name, file.getvalue())}, timeout=60)
+            try:
+                res = requests.post(f"{API_URL}/predict", files={"file": (file.name, file.getvalue())}, timeout=60)
+                if res.status_code == 200:
+                    data = res.json()
+                    st.subheader(f"Prediction: {data['predicted_class']}")
+                    st.write(f"Confidence: **{data['confidence']:.2%}**")
 
-        if res.status_code == 200:
-            data = res.json()
-            st.subheader(f"Prediction: {data['predicted_class']}")
-            st.write(f"Confidence: **{data['confidence']:.2%}**")
-
-            st.write("Full probability breakdown:")
-            probs = data["all_probabilities"]
-            sorted_probs = dict(sorted(probs.items(), key=lambda x: -x[1]))
-            st.bar_chart(sorted_probs)
-        else:
-            st.error(f"Prediction failed: {res.json().get('detail', res.text)}")
+                    st.write("Full probability breakdown:")
+                    probs = data["all_probabilities"]
+                    sorted_probs = dict(sorted(probs.items(), key=lambda x: -x[1]))
+                    st.bar_chart(sorted_probs)
+                else:
+                    st.error(f"Prediction failed: {safe_error_detail(res)}")
+            except requests.exceptions.RequestException as e:
+                st.error(f"Prediction request failed: {e}")
 
 # ---------------- TAB 2: UPLOAD + RETRAIN ----------------
 with tab2:
@@ -61,23 +76,39 @@ with tab2:
 
     if bulk_zip and st.button("Upload Zip"):
         with st.spinner("Uploading and extracting..."):
-            res = requests.post(f"{API_URL}/upload", files={"file": (bulk_zip.name, bulk_zip.getvalue())}, timeout=60)
-        if res.status_code == 200:
-            st.success(res.json()["message"])
-        else:
-            st.error(f"Upload failed: {res.json().get('detail', res.text)}")
+            try:
+                res = requests.post(f"{API_URL}/upload", files={"file": (bulk_zip.name, bulk_zip.getvalue())}, timeout=60)
+                if res.status_code == 200:
+                    st.success(res.json()["message"])
+                else:
+                    st.error(f"Upload failed: {safe_error_detail(res)}")
+            except requests.exceptions.RequestException as e:
+                st.error(f"Upload request failed: {e}")
 
     st.divider()
 
     st.header("Trigger Retraining")
-    st.caption("Retrains the model using everything currently in data/train, including any newly uploaded images.")
+    st.caption(
+        "Retrains the model using everything currently in data/train, including any "
+        "newly uploaded images. This can take several minutes — Render's free tier "
+        "may time out on very long requests, in which case check /health afterward "
+        "to confirm whether the model was updated."
+    )
     if st.button("🔄 Trigger Retraining", type="primary"):
         with st.spinner("Retraining in progress — this can take a few minutes..."):
-            res = requests.post(f"{API_URL}/retrain", timeout=600)
-        if res.status_code == 200:
-            st.success(res.json()["message"])
-        else:
-            st.error(f"Retraining failed: {res.json().get('detail', res.text)}")
+            try:
+                res = requests.post(f"{API_URL}/retrain", timeout=600)
+                if res.status_code == 200:
+                    st.success(res.json()["message"])
+                else:
+                    st.error(f"Retraining failed: {safe_error_detail(res)}")
+            except requests.exceptions.Timeout:
+                st.warning(
+                    "The request timed out on the client side, but retraining may "
+                    "still be running on the server. Check /health in a minute."
+                )
+            except requests.exceptions.RequestException as e:
+                st.error(f"Retraining request failed: {e}")
 
 # ---------------- TAB 3: DATA VISUALIZATIONS ----------------
 with tab3:
