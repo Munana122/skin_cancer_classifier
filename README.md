@@ -135,7 +135,8 @@ Then opened `http://localhost:8089`, ran it with ~20 simulated users, and
 recorded the response time and requests/second.
 
 **Results:**
-<img width="829" height="436" alt="image" src="https://github.com/user-attachments/assets/4bd96d89-46ee-4588-97fb-ab139feb03b4" />
+<img width="944" height="430" alt="image" src="https://github.com/user-attachments/assets/417ee17a-2b5f-4f0a-b374-0c6f28ac8566" />
+
 
 
 ## What I'd improve with more time
