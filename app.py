@@ -55,7 +55,7 @@ def retrain():
         train_ds, val_ds, test_ds = load_datasets("data/train", "data/test")
         model, base_model = build_model()
         model = compile_model(model)
-        train_model(model, train_ds, val_ds, epochs=3, checkpoint_path=MODEL_PATH)
+        train_model(model, train_ds, val_ds, epochs=1, checkpoint_path=MODEL_PATH)
         save_model(model, path=MODEL_PATH)
 
         # Reload model memory cache so /predict instantly uses newly retrained weights
