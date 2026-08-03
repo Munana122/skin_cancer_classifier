@@ -10,7 +10,7 @@ API, a web UI, retraining triggered from new data, and load testing.
 - **API (Render):** https://skin-cancer-classifier-z0bg.onrender.com
 - **API docs (Swagger):** https://skin-cancer-classifier-z0bg.onrender.com/docs
 - **Web UI (Streamlit):** https://skincancerclassifier-olhj8dxmqrp6cfv5z4o6xr.streamlit.app
-- **Video demo:** [ADD YOUR YOUTUBE LINK HERE]
+- **Video demo:** https://youtu.be/uc8i5jAUSec
 - **GitHub repo:** https://github.com/Munana122/skin_cancer_classifier
 
 Note: the API runs on Render's free tier, so it spins down after periods of
